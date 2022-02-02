@@ -119,7 +119,7 @@
                 "RAW_TCP_PORT=23",
                 "BTDEVNAME=G850V",
                 "SSID=AAAAA",
-                "WIFIPASSWORD=AAAAAAAAAA",
+                "WIFIPASSWORD=whatever your password is",
                 "WIFIHOSTNAME=G850V.local",
                 "OTAPW=myOTAPW",
                 "F_CPU=160000000L",
