@@ -25,7 +25,7 @@ displays the active configuration
             "otapw":"myOTAPW"} 
 
 sets a new configuration. you can set just one parameter or all at once.
-rev: integer, referencing the version of the configuration. I recommend leaving at 1
+rev: integer, referencing the version of the configuration. I recommend leaving at 1<br>
 sleep: seconds until unit goes into deep sleep
 baud: baudrate for connection with G850 (600...9600)
 port: TCP/IP port (use 23 fir telnet compatibility)
