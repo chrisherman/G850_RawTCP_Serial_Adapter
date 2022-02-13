@@ -11,12 +11,14 @@ The firmware looks for a config.ini file in LittleFS and will only use the firmw
 
 **AT commands**  (can be set via netcat/telnet or via the G850, e.g. you could save the AT command in text editor and then "save" via the SIO port)
 +++AT+CFG?    
+
 displays the active configuration
 
-+++AT+CFG={ "rev":<n>,
-            "sleep":<n>,
-            "baud":<n>,
-            "port":<n>,
+
++++AT+CFG={ "rev":\<n>,
+            "sleep":\<n>,
+            "baud":\<n>,
+            "port":\<n>,
             "ssid":"GUEST",
             "wifipw":"pw",
             "host":"G850V.local",
