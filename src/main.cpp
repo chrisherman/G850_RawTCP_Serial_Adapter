@@ -10,13 +10,13 @@
  *
  * Hardware Hookup:
  * * 
- * Sharp G850 11 pin port         ESP32
+ * Sharp G850 11 pin port            ESP32
  *=========================================
  *  GND (pin 3) __________________ GND
  * 
- * Rx (pin 6)  __________________ GPIO4
+ * Rx (pin 6)  ___________________ GPIO4 (Tx)
  * 
- * Tx (pin 7)  __________________ GPIO5
+ * Tx (pin 7)  ___________________ GPIO5 (Rx)
  * 
  * RTS (pin 4) __________
  *                       |
@@ -34,8 +34,11 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <ArduinoOTA.h>
-#include <FS.h>
+#include <LittleFS.h>
 #include <Ticker.h>  
+#include "config.h"
+#include "ATScanner.h"
+
 
 //below to ensure Strings from platformio.ini are handled as intended by pre-compiler
 #define ST(A) #A
@@ -43,27 +46,32 @@
 
 #define RX_PIN 5
 #define TX_PIN 4 
-#define BAUD_FILE "/G850.CFG" //persistent storage for selected baudrate
+
+
 
 //#define LED_PIN 2
 #define LED_PIN 10
+#define LEDON 0x1
+#define LEDOFF 0x0
 const int BlinkDelay= 10; // blink period in ms
 
 // second button on the PCB should be PRG-pin
 #define PRG_PIN 0
 
-
-#ifndef SLEEPTIMEOUT_MSEC
-  #define SLEEPTIMEOUT_MSEC 300000
-#endif
 #ifndef SLEEPTIMER_DIV
-  #define SLEEPTIMER_DIV 12
+  #define SLEEPTIMER_DIV 10
 #endif
 
-//SOftSerial related objects
+
+
+//SoftSerial related objects
 #define BUFFER_SIZE 1024    
 byte buff[BUFFER_SIZE];
 SoftwareSerial SoftSerial(RX_PIN, TX_PIN, true); // RX, TX, inverse_logic = true
+void GoTheFuckToSleep();
+ATScanner SoftATscanner(SoftSerial, GoTheFuckToSleep);
+
+
 
 // global objects
 WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
@@ -71,11 +79,11 @@ WiFiServer server(RAW_TCP_PORT);
 WiFiClient  client;
 
 void checkFlash(){
+#ifdef DEBUG
   uint32_t realSize = ESP.getFlashChipRealSize();
   uint32_t ideSize = ESP.getFlashChipSize();
   FlashMode_t ideMode = ESP.getFlashChipMode();
 
-#ifdef DEBUG
   Serial.printf("\n");
   Serial.printf("Flash real id:   %08X\n", ESP.getFlashChipId());
   Serial.printf("Flash real size: %u bytes\n", realSize);
@@ -94,7 +102,7 @@ void checkFlash(){
 
 void OTASetup(){
 
-  ArduinoOTA.setPassword((const char *)STR(OTAPW));
+  ArduinoOTA.setPassword(GlobalConfig.otapw);
   ArduinoOTA.onStart([]() {
     #ifdef DEBUG
       Serial.println("Start");
@@ -125,7 +133,24 @@ void OTASetup(){
   ArduinoOTA.begin();
 }
 
-
+void listAllFilesInDir(String dir_path)
+{
+	Dir dir = LittleFS.openDir(dir_path);
+	while(dir.next()) {
+		if (dir.isFile()) {
+			// print file names
+			Serial.print("File: ");
+			Serial.println(dir_path + dir.fileName());
+		}
+		if (dir.isDirectory()) {
+			// print directory names
+			Serial.print("Dir: ");
+			Serial.println(dir_path + dir.fileName() + "/");
+			// recursive file listing inside new directory
+			listAllFilesInDir(dir_path + dir.fileName() + "/");
+		}
+	}
+}
 
 
 
@@ -158,60 +183,6 @@ int GetBaudrate(int i){
 }
 
 
-int ReadPersistent(){
-  
-  File file = SPIFFS.open( BAUD_FILE, "r");
-  if(file){
-    int i= file.readString().toInt();
-    #ifdef DEBUG
-      Serial.println( String("ReadPersistent=")+i);
-    #endif
-    return i;
-  }
-  else
-    return -1;
-}
-
-void WritePersistent(int v){
-  File file = SPIFFS.open( BAUD_FILE, "w");
-  if(file){
-    file.print( v);
-  }
-  #ifdef DEBUG
-    Serial.println(String("WritePersistent=")+v);
-  #endif
-
-  ReadPersistent();
-}
-
-void Inspect(const uint8_t *buffer, size_t size){
-  // looking for inband AT command coming from TCP client
-
-  const char *codeword= "+++AT?";
-  const size_t codelength= 6;
-  static size_t matchcount=0;
-
-  for(size_t n=0; n<size; n++){
-    if((buffer[n]==codeword[matchcount])||(codeword[matchcount]=='?'))   //character matching
-      matchcount++;                       // we have a match
-    else{
-      if(n>=matchcount){
-        n-= matchcount;                   // start comparing entire sequence again, but start one character later, avoiding +++++ATx misses
-      }
-      matchcount=0;                       // nope, no match, start from scratch
-    }
-
-    if(matchcount==codelength){           // all charcters were matched
-      int value= buffer[n]-48;
-      int newbaud= GetBaudrate( value );
-      SoftSerial.begin(newbaud);
-      if(client)
-        client.print(String("Baud")+newbaud+String("OK"));
-      WritePersistent(value);
-      matchcount=0;                       // reset for search for next command string
-    }
-  }
-}
 
 
 
@@ -223,19 +194,12 @@ blinkstates blinkstate= Off;
 
 static void blinker(){
 
-  #define LEDON 0x1
-  #define LEDOFF 0x0
+
   
   #ifdef DEBUG
     //Serial.print("*");
   #endif
 
-  //set pin as output
-  static bool firstcall= true;
-  if(firstcall){
-      pinMode(LED_PIN, OUTPUT);
-      firstcall=false;
-  }
 
   static int cycle= 0;
   cycle++;
@@ -283,11 +247,27 @@ static void blinker(){
 }
 
 void SetBlinker(blinkstates bs){
+  //set pin as output
+  static bool firstcall= true;
+  if(firstcall){
+      pinMode(LED_PIN, OUTPUT);
+      firstcall=false;
+  }
+
   blinkstate= bs;
 }
 
 Ticker BlinkTimer(blinker, BlinkDelay, 0, MILLIS);
 
+
+void GoTheFuckToSleep(){
+  digitalWrite(LED_PIN, LEDOFF);
+  delay(500);
+  while(true){
+    ESP.deepSleep(0);   
+    delay(100);
+  }
+}
 
 //////////////////////////////////
 // sleep-timout related stuff:
@@ -304,13 +284,14 @@ static void SleepCheck(){
   } else  if(sleepCountdown==SLEEPTIMER_DIV){
     SetBlinker(Tripple);
   } else if(sleepCountdown>SLEEPTIMER_DIV){
-       ESP.deepSleep(0);   
+    GoTheFuckToSleep();
   } else
     SetBlinker(Single);
 
 }
 
-Ticker SleepTimer(SleepCheck, SLEEPTIMEOUT_MSEC/SLEEPTIMER_DIV, 0, MILLIS);
+Ticker SleepTimer(SleepCheck, 30000/SLEEPTIMER_DIV, 0, MILLIS);  //we need to create on the heap otherwise the sleeptimeout is not known
+
 
 void SleepTimerRestart(){
   sleepCountdown=0;
@@ -318,24 +299,65 @@ void SleepTimerRestart(){
   SleepTimer.start(); //reset timer
 }
 
+// Reset the sleep timer upon button release
+void CheckPrgButton(){
+  const unsigned long BUTTONPRESSTIME= 5000;        // duration of keypress
+
+
+  //set PRG pin as input when called first time
+  static bool firstcall= true;
+  if(firstcall){
+    pinMode(PRG_PIN, INPUT);
+    firstcall=false;
+  }
+
+
+  static bool wasPressed= false;
+  static unsigned long lastpress= 0;
+
+
+  if(digitalRead(PRG_PIN)==LOW){ //button pressed
+    if(wasPressed==false){      // first time that happpened
+    wasPressed= true;           // let's remember that
+    lastpress=millis();         // and when that happened
+    } else {                    // wasPressed flag was already set
+      //not really doing anything here...
+    }
+  } else{ //button not pressed
+    if(wasPressed==true){   // but it was pressed just a moment ago
+      wasPressed= false;    // let's reset that memory
+
+      if((lastpress+BUTTONPRESSTIME)<millis()){   // button was pressed longer than the timeout time
+        #ifdef DEBUG
+          Serial.println("PRG button: restoring failsafe config");
+        #endif      
+        loadFailSafeConfiguration(GlobalConfig);
+        saveConfiguration(GlobalConfig);
+        #ifdef DEBUG
+          Serial.println("restarting with failsafe config");
+        #endif  
+        delay(1000);
+        ESP.reset();
+      } else{                                       // was only pressed briefly
+        #ifdef DEBUG
+          Serial.println("PRG button: timer reset");
+        #endif
+        SleepTimerRestart();  //payload
+      }
+
+    }
+  }
+}
 
 
 
 
 void setup() {
   #ifdef DEBUG
-    Serial.begin(BAUDRATE);
+    Serial.begin(9600);
   #endif
-
-  SetBlinker(On);
-  BlinkTimer.start();  
-
-  pinMode(PRG_PIN, INPUT);
-  //attachInterrupt(digitalPinToInterrupt(PRG_PIN), SleepTimerRestart, RISING);
-
-
-  checkFlash();
-  if (SPIFFS.begin()){
+  
+  if (LittleFS.begin()){
     #ifdef DEBUG
       Serial.println("File system mounted");
     #endif
@@ -346,17 +368,27 @@ void setup() {
     #endif
   }
 
-  int br= GetBaudrate(ReadPersistent());
+  loadConfiguration(GlobalConfig);
   #ifdef DEBUG
-    Serial.println( String("return from GetBaudrate=") + br);
+    PrintConfig(Serial);
+    checkFlash();
+    listAllFilesInDir("/");
   #endif
 
-  SoftSerial.begin(br);
+  SleepTimer.interval((GlobalConfig.sleeptimeout*1000)/SLEEPTIMER_DIV);
+  SleepTimer.start();
+  SetBlinker(On);
+  BlinkTimer.start();  
 
+  SoftSerial.begin(GlobalConfig.softbaudrate);
 
+  //WiFi stuff:
+  WiFi.begin(GlobalConfig.wifissid, GlobalConfig.wifipassword);
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
   gotIpEventHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& event)
   {
-    WiFi.setHostname(STR(WIFIHOSTNAME));
+    WiFi.setHostname(GlobalConfig.hostname);
     SetBlinker(Single);
     #ifdef DEBUG
       Serial.print("Station connected, IP: ");
@@ -373,15 +405,11 @@ void setup() {
     #endif
   });
 
-
- 
-  WiFi.begin(STR(SSID), STR(WIFIPASSWORD));
-  WiFi.setAutoReconnect(true);
-  WiFi.persistent(true);
   delay(200);
   OTASetup();
 
-  server.begin();
+
+  server.begin(GlobalConfig.rawport);
   #ifdef DEBUG
     Serial.println("servers started");
   #endif
@@ -396,19 +424,20 @@ void loop() {
   client = server.available();              //wait for client connection 
 
   if (client){
-    //clear any bytes so far in the Serial Buffer to avoid sending garbage to new client
+
+    //clear any bytes received
     while(SoftSerial.available()>0)  {  
       SoftSerial.read();  
     }
 
     while (client.connected()) {
-      
+      ATScanner netscanner(client, GoTheFuckToSleep);
     
       // read data from wifi client and send to serial
       while ((size = client.available())) {
             size = (size >= BUFFER_SIZE ? BUFFER_SIZE : size);
             client.read(buff, size);
-            Inspect(buff, size);
+            netscanner.scan(buff, size);
             SoftSerial.write(buff, size);
             SoftSerial.flush();
             SleepTimerRestart();
@@ -419,7 +448,7 @@ void loop() {
       while ((size = SoftSerial.available())) {
             size = (size >= BUFFER_SIZE ? BUFFER_SIZE : size);
             SoftSerial.readBytes(buff, size);
-            Inspect(buff, size);
+            SoftATscanner.scan(buff, size);
             client.write(buff, size);
             client.flush();
             SleepTimerRestart();
@@ -429,13 +458,10 @@ void loop() {
       SleepTimer.update();
       BlinkTimer.update();
       ArduinoOTA.handle();
+      CheckPrgButton();
     }
 
-
-    client.stop();
-    SleepTimer.update();
-    BlinkTimer.update();
-    ArduinoOTA.handle();
+    client.stop();    
   }
 
 
@@ -444,16 +470,16 @@ void loop() {
   while ((size = SoftSerial.available())) {
         size = (size >= BUFFER_SIZE ? BUFFER_SIZE : size);
         SoftSerial.readBytes(buff, size);
-        //client.write(buff, size);
-        //client.flush();
-        Inspect(buff, size);
+        SoftATscanner.scan(buff, size);
         SleepTimerRestart();
         BlinkTimer.update();
+        CheckPrgButton();
   }
 
 
   SleepTimer.update();
   BlinkTimer.update();
   ArduinoOTA.handle();
-  //delay(5);
+  CheckPrgButton();
+  delay(5); // w/o this delay., OTA gives you trouble
 }
