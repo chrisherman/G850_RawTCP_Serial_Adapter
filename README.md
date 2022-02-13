@@ -9,36 +9,35 @@ The firmware looks for a config.ini file in LittleFS and will only use the firmw
 
 
 
-**AT commands**  (can be set via netcat/telnet or via the G850, e.g. you could save the AT command in text editor and then "save" via the SIO port)
-+++AT+CFG?    
+**AT commands**  (can be set via netcat/telnet or via the G850, e.g. you could save the AT command in text editor and then "save" via the SIO port)<br>
+**+++AT+CFG?**<br>    
+displays the active configuration<br>
 
-displays the active configuration
 
+**+++AT+CFG={ "rev":\<n>,<br>
+            "sleep":\<n>,<br>
+            "baud":\<n>,<br>
+            "port":\<n>,<br>
+            "ssid":"GUEST",<br>
+            "wifipw":"pw",<br>
+            "host":"G850V.local",<br>
+            "otapw":"myOTAPW"} <br>**
 
-+++AT+CFG={ "rev":\<n>,
-            "sleep":\<n>,
-            "baud":\<n>,
-            "port":\<n>,
-            "ssid":"GUEST",
-            "wifipw":"pw",
-            "host":"G850V.local",
-            "otapw":"myOTAPW"} 
-
-sets a new configuration. you can set just one parameter or all at once.
+Sets a new configuration. you can set just one parameter or all at once.<br>
 rev: integer, referencing the version of the configuration. I recommend leaving at 1<br>
-sleep: seconds until unit goes into deep sleep
-baud: baudrate for connection with G850 (600...9600)
-port: TCP/IP port (use 23 fir telnet compatibility)
-ssid: the ssid name of your wifi
-wifipw: password of your wifi network
-host: hostname for use when requesting an IP address 
-otapw: password for protrcting your otapassowrds (use espota protocol)
+sleep: seconds until unit goes into deep sleep<br>
+baud: baudrate for connection with G850 (600...9600)<br>
+port: TCP/IP port (use 23 fir telnet compatibility)<br>
+ssid: the ssid name of your wifi<br>
+wifipw: password of your wifi network<br>
+host: hostname for use when requesting an IP address<br> 
+otapw: password for protrcting your otapassowrds (use espota protocol)<br>
 
 
-Example:
-+++AT+CFG={"ssid":"GUEST","wifipw":"pw"}
+Example:<br>
++++AT+CFG={"ssid":"GUEST","wifipw":"pw"}<br>
 
-+++AT+SAVE
+**+++AT+SAVE**<br>
 saves current configuration as failsafe.ini to LittleFS Flash file system.
 **Pressing the PRG button for longer than 5 sec will load failsafe.ini configuration and reboot.**
 This allows you to recover from a fucked-up config.ini (e.g. wrong wifi credentials)
