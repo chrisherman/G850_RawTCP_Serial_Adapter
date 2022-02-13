@@ -9,7 +9,7 @@ The firmware looks for a config.ini file in LittleFS and will only use the firmw
 
 
 
-##AT commands  (can be set via netcat/telnet or via the G850, e.g. you could save the AT command in text editor and then "save" via the SIO port)
+**AT commands**  (can be set via netcat/telnet or via the G850, e.g. you could save the AT command in text editor and then "save" via the SIO port)
 +++AT+CFG?    
 displays the active configuration
 
@@ -22,8 +22,9 @@ displays the active configuration
             "host":"G850V.local",
             "otapw":"myOTAPW"} 
 sets a new configuration. you can set just one parameter or all at once.
+
 Example:
-+++AT+CFG={"ssid":"GUEST","wifipw":"pw",}
++++AT+CFG={"ssid":"GUEST","wifipw":"pw"}
 
 +++AT+SAVE
 saves current configuration as failsafe.ini to LittleFS Flash file system.
