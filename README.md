@@ -27,14 +27,14 @@ displays the active configuration<br>
 Return: OK
 
 Sets a new configuration. you can set just one parameter or all at once.<br>
-rev: integer, referencing the version of the configuration. I recommend leaving at 1<br>
-sleep: seconds until unit goes into deep sleep<br>
-baud: baudrate for connection with G850 (600...9600)<br>
-port: TCP/IP port (use 23 fir telnet compatibility)<br>
-ssid: the ssid name of your wifi<br>
-wifipw: password of your wifi network<br>
-host: hostname for use when requesting an IP address<br> 
-otapw: password for protrcting your otapassowrds (use espota protocol)<br>
+**rev**: integer, referencing the version of the configuration. I recommend leaving at 1<br>
+**sleep**: seconds until unit goes into deep sleep<br>
+**baud**: baudrate for connection with G850 (600...9600)<br>
+**port**: TCP/IP port (use 23 for telnet compatibility)<br>
+**ssid**: the ssid name of your wifi<br>
+**wifipw**: password of your wifi network<br>
+**host**: hostname for use when requesting an IP address<br> 
+**otapw**: password for protrcting your otapassowrds (use espota protocol)<br>
 
 
 Example:<br>
@@ -44,12 +44,14 @@ Example:<br>
 Return: OK
 saves current configuration as failsafe.ini to LittleFS Flash file system.
 **Pressing the PRG button for longer than 5 sec will load failsafe.ini configuration and reboot.**
-This allows you to recover from a fucked-up config.ini (e.g. wrong wifi credentials)
+This allows you to recover from a messed-up config.ini (e.g. wrong wifi credentials)<br>
 
 
 **+++AT+SLEEP<BR>
-Puts the adapter immediately into sleep.
-Return: OK
+Puts the adapter immediately into sleep.<br>
+Return: OK<br>
+
+
 
 
 
