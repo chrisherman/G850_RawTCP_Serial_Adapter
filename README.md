@@ -1,4 +1,4 @@
-#G850 Raw-TCP Serial Adapter<br>
+**WiFi Raw-TCP Serial Adapter for the Sharp PC-G850** <br>
 A Serial to TCP/IP adapter for the Sharp G850V(S) using the 11-pin port and an ESP8266<br>
 
 **Initial Configuration**<br>
@@ -7,7 +7,7 @@ The firmware looks for a config.ini file in LittleFS and will only use the firmw
 (note that if you initialize your ESL with SPIFFs, you can upload a config.ini file until your hair falls out - it will always be wiped when the software initializes LittleFS, so make sure you upload any configuration file using LittleFS filesystem)
 
 
-**AT commands**  (can be set via netcat/telnet or via the G850, e.g. you could save the AT command in text editor and then "save" via the SIO port)<br>
+**AT commands**  (can be set via netcat/telnet or via the G850, e.g. you could save the AT command in text editor and then "save" via the SIO port) to change the WiFI SSID and password or other parameters.<br>
 **+++AT+CFG?**<br>
 Returns: +++AT+CFG={"rev":1,"sleep":60,"baud":9600,"port":23,"ssid":"GUEST","wifipw":"your_pw_here","host":"G850V.local","otapw":"myOTAPW"}<br> 
 The command displays the active configuration<br>
