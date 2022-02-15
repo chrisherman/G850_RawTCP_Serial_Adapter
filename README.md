@@ -1,19 +1,16 @@
-#G850 Raw-TCP Serial Adapter
-##A Serial to TCP/IP adapter for the Sharp G850V(S) using the 11-pin port and an ESP8266
+#G850 Raw-TCP Serial Adapter#
+##A Serial to TCP/IP adapter for the Sharp G850V(S) using the 11-pin port and an ESP8266##
 
-##Initial Configuration
-config.h contains all relevant default parameters 
+###Initial Configuration###
+config.h contains all relevant default parameters.<br> 
 The firmware looks for a config.ini file in LittleFS and will only use the firmware defaults if no config file can be loaded
 (note that if you initialize your ESL with SPIFFs, you can upload a config.ini file until your hair falls out - it will always be wiped when the software initializes LittleFS, so make sure you upload any configuration file using LittleFS filesystem)
 
 
-
-
 **AT commands**  (can be set via netcat/telnet or via the G850, e.g. you could save the AT command in text editor and then "save" via the SIO port)<br>
-**+++AT+CFG?**<br><BR>   
-Return: +++AT+CFG={"rev":1,"sleep":60,"baud":9600,"port":23,"ssid":"GUEST","wifipw":"your_pw_here","host":"G850V.local","otapw":"myOTAPW"}<br> 
-displays the active configuration<br>
-
+**+++AT+CFG?**<br>
+Returns: +++AT+CFG={"rev":1,"sleep":60,"baud":9600,"port":23,"ssid":"GUEST","wifipw":"your_pw_here","host":"G850V.local","otapw":"myOTAPW"}<br> 
+The command displays the active configuration<br>
 
 
 **+++AT+CFG**={ "rev":\<n>,<br>
@@ -24,7 +21,7 @@ displays the active configuration<br>
             "wifipw":"new_pw",<br>
             "host":"G850V.local",<br>
             "otapw":"myOTAPW"} <br>**
-Return: OK
+Returns: OK
 
 Sets a new configuration. you can set just one parameter or all at once.<br>
 **rev**: integer, referencing the version of the configuration. I recommend leaving at 1<br>
@@ -41,14 +38,14 @@ Example:<br>
 +++AT+CFG={"ssid":"GUEST","wifipw":"pw"}<br>
 
 **+++AT+SAVE**<br>
-Return: OK
-saves current configuration as failsafe.ini to LittleFS Flash file system.
+Returns: OK
+saves current configuration as failsafe.ini to LittleFS Flash file system.<br>
 **Pressing the PRG button for longer than 5 sec will load failsafe.ini configuration and reboot.**
 This allows you to recover from a messed-up config.ini (e.g. wrong wifi credentials)<br>
 
 **+++AT+SLEEP**<BR>
 Puts the adapter immediately into sleep.<br>
-Return: OK<br>
+Returns: OK<br>
 
 
 
