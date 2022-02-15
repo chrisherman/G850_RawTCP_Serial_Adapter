@@ -46,7 +46,6 @@ saves current configuration as failsafe.ini to LittleFS Flash file system.
 **Pressing the PRG button for longer than 5 sec will load failsafe.ini configuration and reboot.**
 This allows you to recover from a messed-up config.ini (e.g. wrong wifi credentials)<br>
 
-
 **+++AT+SLEEP<BR>
 Puts the adapter immediately into sleep.<br>
 Return: OK<br>
