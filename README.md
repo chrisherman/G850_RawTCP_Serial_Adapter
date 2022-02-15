@@ -11,8 +11,9 @@ The firmware looks for a config.ini file in LittleFS and will only use the firmw
 
 **AT commands**  (can be set via netcat/telnet or via the G850, e.g. you could save the AT command in text editor and then "save" via the SIO port)<br>
 **+++AT+CFG?**<br><BR>   
-Return: +++AT+CFG={"rev":1,"sleep":60,"baud":9600,"port":23,"ssid":"AAAAA","wifipw":"AAAAAAAAAA","host":"G850V.local","otapw":"myOTAPW"} 
+Return: +++AT+CFG={"rev":1,"sleep":60,"baud":9600,"port":23,"ssid":"AAAAA","wifipw":"AAAAAAAAAA","host":"G850V.local","otapw":"myOTAPW"}<br> 
 displays the active configuration<br>
+
 
 
 **+++AT+CFG={ "rev":\<n>,<br>
@@ -48,6 +49,8 @@ This allows you to recover from a fucked-up config.ini (e.g. wrong wifi credenti
 
 **+++AT+SLEEP<BR>
 Puts the adapter immediately into sleep.
+Return: OK
+
 
 
 
