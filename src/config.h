@@ -67,7 +67,7 @@ struct Config {
 
 #define WIFIPASSWORD_TAG "wifipw"
 #ifndef WIFIPASSWORD
-  #define WIFIPASSWORD "AAAAAAAAAA"
+  #define WIFIPASSWORD "put_your_wifi_pw_here"
 #endif
 
 #define HOSTNAME_TAG "host"
