@@ -1,9 +1,9 @@
-#G850 Raw-TCP Serial Adapter#
-##A Serial to TCP/IP adapter for the Sharp G850V(S) using the 11-pin port and an ESP8266##
+#G850 Raw-TCP Serial Adapter<br>
+A Serial to TCP/IP adapter for the Sharp G850V(S) using the 11-pin port and an ESP8266<br>
 
-###Initial Configuration###
+**Initial Configuration**<br>
 config.h contains all relevant default parameters.<br> 
-The firmware looks for a config.ini file in LittleFS and will only use the firmware defaults if no config file can be loaded
+The firmware looks for a config.ini file in LittleFS and will only use the firmware defaults if no config file can be loaded<br>
 (note that if you initialize your ESL with SPIFFs, you can upload a config.ini file until your hair falls out - it will always be wiped when the software initializes LittleFS, so make sure you upload any configuration file using LittleFS filesystem)
 
 
