@@ -13,7 +13,7 @@ Returns: +++AT+CFG={"rev":1,"sleep":60,"baud":9600,"port":23,"ssid":"GUEST","wif
 The command displays the active configuration<br>
 
 
-**+++AT+CFG**={ "rev":\<n>,<br>
+**+++AT+CFG={ "rev":\<n>,<br>
             "sleep":\<n>,<br>
             "baud":\<n>,<br>
             "port":\<n>,<br>

@@ -30,37 +30,66 @@
 
 
 
+  // find first occurance of pat in txt
+  int findPattern(const char *pat, const char *txt){
+    int patLen = strlen(pat);
+    int txtLen = strlen(txt);
+    if(patLen>txtLen) //impossible to find a larger pattern in a smaller buffer
+      return -1;
+
+    int srchLen= txtLen-patLen; //we only need to search between start and patLen-characters before end of txt 
+    for(int t=0;t<=srchLen;t++){
+      for(int p=0;p<patLen;p++){
+        if((pat[p]==txt[t+p])){
+          if(p==(patLen-1))
+            return t;
+        }
+        else{
+          // nope, no match, move on
+          break;
+        }
+
+      }
+
+    }
+    return -1;
+  }
+
 
 
   //looking for AT-command at beginning of line and process command if found
   void ATScanner::parse(){
 
+        //save current configuration as failsafe configuration file
+    int f= 0;
+    
     //save current configuration as failsafe configuration file
-    if (strncmp((char*)m_buf, "+++AT+SAVE", 10) == 0) {
+    if(findPattern( "+++AT+SAVE", (char*)m_buf) >= 0) {
       saveFailSafeConfiguration(GlobalConfig);
       PrintFailSafeConfig(m_p);
       m_p.println("OK");
     }
 
     //show JSON configuration string
-    if (strncmp((char*)m_buf, "+++AT+CFG?", 10) == 0) {
+    if(findPattern( "+++AT+CFG?", (char*)m_buf) >= 0) {
        m_p.print("+++AT+CFG=");
        PrintConfig(m_p);
       m_p.println("OK");
     }
 
    //sends device to sleep
-    if (strncmp((char*)m_buf, "+++AT+SLEEP", 11) == 0) {
+    if(findPattern( "+++AT+SLEEP", (char*)m_buf) >= 0) {
        m_p.print("OK");
        m_sleeproutine();
     }
 
     //read JSON configuration string
-    if (strncmp((char*)m_buf, "+++AT+CFG=", 10) == 0) {
+    f= findPattern( "+++AT+CFG=", (char*)m_buf);
+    if (f >= 0){
       #ifdef DEBUG
-        Serial.println((char*)m_buf+10);
+        Serial.println((char*)m_buf+10+f);
       #endif
-      readConfigurationFromStream(GlobalConfig, (char*)m_buf+10);
+      readConfigurationFromStream(GlobalConfig, (char*)m_buf+10+f);
       m_p.println("OK");
       saveConfiguration(GlobalConfig);
       PrintConfig(m_p);
